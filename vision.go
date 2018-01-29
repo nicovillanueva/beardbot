@@ -1,0 +1,69 @@
+package main
+
+import (
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
+	"google.golang.org/api/googleapi/transport"
+	vision "google.golang.org/api/vision/v1"
+	"log"
+	"net/http"
+)
+
+type VisionResult struct {
+	Descr      string
+	Mid        string
+	score      float32
+	topicality float32
+}
+
+func RecognizeImage(data []byte) string {
+	enc := base64.StdEncoding.EncodeToString(data)
+	img := &vision.Image{Content: enc}
+
+	feature := &vision.Feature{
+		Type:       "LABEL_DETECTION",
+		MaxResults: 3,
+	}
+	req := &vision.AnnotateImageRequest{
+		Image:    img,
+		Features: []*vision.Feature{feature},
+	}
+	batch := &vision.BatchAnnotateImagesRequest{
+		Requests: []*vision.AnnotateImageRequest{req},
+	}
+	client := &http.Client{
+		Transport: &transport.APIKey{Key: KeysProvider.GoogleAPI},
+	}
+
+	svc, err := vision.New(client)
+	if err != nil {
+		log.Fatalln("Could not create vision client! %s", err)
+	}
+	log.Printf("Calling Google Vision")
+	res, err := svc.Images.Annotate(batch).Do()
+	if err != nil {
+		m := "Could not recognize images!"
+		log.Printf("%s %s\n", m, err)
+		return m
+	}
+	body, _ := json.Marshal(res.Responses[0].LabelAnnotations)
+	log.Printf("GVision says: %s", string(body))
+
+	annotations := res.Responses[0].LabelAnnotations
+
+	var s string
+	switch len(annotations) {
+	case 3:
+		s += fmt.Sprintf(". Though it miiiight be a '%s' (%f)", annotations[2].Description, annotations[2].Score)
+		fallthrough
+	case 2:
+		s = fmt.Sprintf(", but it could also be a '%s' (%f)", annotations[1].Description, annotations[1].Score) + s
+		fallthrough
+	case 1:
+		s = fmt.Sprintf("Looks a lot like a '%s' (%f)", annotations[0].Description, annotations[0].Score) + s
+	}
+	s += "."
+
+	return s
+}
