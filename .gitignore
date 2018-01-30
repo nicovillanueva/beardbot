@@ -1,4 +1,5 @@
 NOTES.md
 vendor/
-keys.toml
+settings.toml
 Makefile
+scratch/

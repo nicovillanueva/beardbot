@@ -8,6 +8,7 @@ import (
 	vision "google.golang.org/api/vision/v1"
 	"log"
 	"net/http"
+	// youtube "google.golang.org/api/youtube/v3"
 )
 
 type VisionResult struct {
@@ -33,7 +34,7 @@ func RecognizeImage(data []byte) string {
 		Requests: []*vision.AnnotateImageRequest{req},
 	}
 	client := &http.Client{
-		Transport: &transport.APIKey{Key: KeysProvider.GoogleAPI},
+		Transport: &transport.APIKey{Key: SettingsProvider.ApiKeys.GoogleAPI},
 	}
 
 	svc, err := vision.New(client)
@@ -63,7 +64,23 @@ func RecognizeImage(data []byte) string {
 	case 1:
 		s = fmt.Sprintf("Looks a lot like a '%s' (%f)", annotations[0].Description, annotations[0].Score) + s
 	}
-	s += "."
 
 	return s
 }
+
+// var playlists = []string{
+// 	"PLXD4mnw6H4dNyauYF7A2qHB5xLOCG64Bp",
+// 	"PLOy0j9AvlVZPto6IkjKfpu0Scx--7PGTC",
+// }
+//
+// func GetRandomVideo() {
+// 	client := &http.Client{
+// 		Transport: &transport.APIKey{Key: SettingsProvider.Keys.GoogleAPI},
+// 	}
+//
+// 	svc, err := youtube.New(client)
+// 	p := youtube.Playlist{
+// 		Id: playlists[0],
+// 	}
+// 	playlistSvc := youtube.NewPlaylistItemsService(svc)
+// }

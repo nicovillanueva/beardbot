@@ -30,7 +30,8 @@
     "googleapi",
     "googleapi/internal/uritemplates",
     "googleapi/transport",
-    "vision/v1"
+    "vision/v1",
+    "youtube/v3"
   ]
   revision = "61a5611191ce37af3dca50af6d9265cb273ccb88"
 
@@ -52,6 +53,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "510e3494d420722ed68dad1682b2e1a490e5cc702eec8148edb4acd07962207d"
+  inputs-digest = "9d94a90b85c1a4ea48462289d7e47ff943d0c8b07660a0e428a0414a18ae8c51"
   solver-name = "gps-cdcl"
   solver-version = 1

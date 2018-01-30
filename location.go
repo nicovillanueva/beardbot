@@ -7,7 +7,7 @@ import (
 )
 
 func buildClient() *maps.Client {
-	c, err := maps.NewClient(maps.WithAPIKey(KeysProvider.GoogleAPI))
+	c, err := maps.NewClient(maps.WithAPIKey(SettingsProvider.ApiKeys.GoogleAPI))
 	if err != nil {
 		log.Fatalf("fatal error: %s", err)
 	}

@@ -4,28 +4,30 @@ import (
 	"encoding/json"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/url"
-    "math/rand"
-    "time"
+	"time"
 )
 
 var initialized bool = false
-var captions = []string {
-    "Here you have",
-    "Hope your day gets better",
-    "Enjoy",
-    "Cats make the world a better place",
+var captions = []string{
+	"Here you have",
+	"Hope your day gets better",
+	"Enjoy",
+	"Cats make the world a better place",
+	"Cat-powered internet ftw",
 }
 
 func GetCatGif() *tb.Video {
-    if ! initialized {
-        rand.Seed(time.Now().Unix())
-        log.Println("Initialized random seed")
-    }
+	if !initialized {
+		rand.Seed(time.Now().Unix())
+		log.Println("Initialized random seed")
+	}
 
 	ph := makeRequest()
 	ph.Caption = captions[rand.Intn(len(captions))]
+
 	return &ph
 }
 
@@ -33,7 +35,7 @@ func makeRequest() tb.Video {
 	// Based on https://github.com/paddycarey/gophy
 	var endpoint string = "https://api.giphy.com/v1/gifs/random?"
 	qs := &url.Values{}
-	qs.Set("api_key", KeysProvider.GiphyAPI)
+	qs.Set("api_key", SettingsProvider.ApiKeys.GiphyAPI)
 	qs.Set("tag", "cats")
 	endpoint += qs.Encode()
 

@@ -13,5 +13,6 @@ RUN go build -o /bin/compiled
 FROM alpine
 RUN apk --no-cache add ca-certificates
 COPY --from=build /bin/compiled /bin/beardbot
+COPY keys.toml /
 STOPSIGNAL 9
 ENTRYPOINT ["/bin/beardbot"]
