@@ -2,59 +2,68 @@ package main
 
 import (
 	"encoding/json"
+	log "github.com/sirupsen/logrus"
 	tb "gopkg.in/tucnak/telebot.v2"
-	"log"
 	"math/rand"
 	"net/http"
 	"net/url"
 	"time"
 )
 
-var initialized bool = false
+var initialized = false
 var captions = []string{
 	"Here you have",
 	"Hope your day gets better",
 	"Enjoy",
-	"Cats make the world a better place",
-	"Cat-powered internet ftw",
+	// "Cats make the world a better place",
+	// "Cat-powered internet ftw",
 }
 
-func GetCatGif() *tb.Video {
+// GetGif receives a tag, and queries the random giphy endpoint to get a
+// gif with the given tag
+func GetGif(tag string) (*tb.Video, error) {
 	if !initialized {
 		rand.Seed(time.Now().Unix())
-		log.Println("Initialized random seed")
+		initialized = true
+		log.Info("Initialized random seed")
 	}
 
-	ph := makeRequest()
+	ph, err := makeRequest(tag)
+	if err != nil {
+		return nil, err
+	}
+
 	ph.Caption = captions[rand.Intn(len(captions))]
 
-	return &ph
+	return &ph, nil
 }
 
-func makeRequest() tb.Video {
+func makeRequest(tag string) (tb.Video, error) {
 	// Based on https://github.com/paddycarey/gophy
-	var endpoint string = "https://api.giphy.com/v1/gifs/random?"
+	var endpoint = "https://api.giphy.com/v1/gifs/random?"
 	qs := &url.Values{}
-	qs.Set("api_key", SettingsProvider.ApiKeys.GiphyAPI)
-	qs.Set("tag", "cats")
+	qs.Set("api_key", SettingsProvider.APIKeys.GiphyAPI)
+	qs.Set("tag", tag)
 	endpoint += qs.Encode()
 
 	resp, err := http.Get(endpoint)
 	if err != nil {
-		log.Fatalf("Could not query Giphy: %s", err)
+		log.Errorf("Could not query Giphy: %s", err)
+		return tb.Video{}, err
 	}
 
 	var response GiphyResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		log.Fatalf("Error decoding Giphy response: %s", err)
+		log.Errorf("Error decoding Giphy response: %s", err)
+		return tb.Video{}, err
 	}
 
-	log.Printf("Found cat gif: %s", response.Data.ImageMp4URL)
+	log.Infof("Found cat gif: %s", response.Data.ImageMp4URL)
 	return tb.Video{
 		File: tb.File{
 			FileURL: response.Data.ImageMp4URL,
 		},
-	}
+	}, nil
 }
 
 type GiphyResponse struct {

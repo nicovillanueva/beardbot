@@ -2,17 +2,18 @@ package main
 
 import (
 	"github.com/BurntSushi/toml"
+	log "github.com/sirupsen/logrus"
 	tb "gopkg.in/tucnak/telebot.v2"
-	"log"
+	// "log"
+	"flag"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-    "flag"
 )
 
 type Settings struct {
-	ApiKeys   KeysProvider
+	APIKeys   KeysProvider
 	CreatorID int
 }
 
@@ -25,11 +26,11 @@ type KeysProvider struct {
 var SettingsProvider Settings
 
 func main() {
-    settPtr := flag.String("settings", "./settings.toml", "Path to the TOML settings file to use")
-    destrPtr := flag.Bool("destroy", false, "Destroy the settings file after loading?")
-    flag.Parse()
+	settPtr := flag.String("settings", "./settings.toml", "Path to the TOML settings file to use")
+	destrPtr := flag.Bool("destroy", false, "Destroy the settings file after loading?")
+	flag.Parse()
 
-	log.Println("Starting...")
+	log.Infof("Starting...")
 	setupSettings(settPtr, destrPtr)
 
 	b := assembleBot()
@@ -37,22 +38,22 @@ func main() {
 	registerHandlers(b)
 
 	go b.Start()
-    log.Println("Systems ready. Bot online.")
+	log.Infof("Systems ready. Bot online.")
 	notifyStartup(b)
 
-	log.Println("Preparing teardown.")
+	log.Infof("Preparing teardown.")
 	prepareShutdown(b)
 }
 
 func assembleBot() *tb.Bot {
 	b, err := tb.NewBot(tb.Settings{
-		Token:  SettingsProvider.ApiKeys.TelegramBot,
+		Token:  SettingsProvider.APIKeys.TelegramBot,
 		Poller: &tb.LongPoller{Timeout: 10 * time.Second},
 	})
 	if err != nil {
 		log.Panicln(err)
 	}
-    log.Printf("Bot created: %s.", SettingsProvider.ApiKeys.TelegramBot)
+	log.Infof("Bot created: %s.", SettingsProvider.APIKeys.TelegramBot)
 	return b
 }
 
@@ -60,10 +61,10 @@ func prepareShutdown(b *tb.Bot) {
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	<-c
-	log.Println("Stopping bot...")
+	log.Infof("Stopping bot...")
 	notifyShutdown(b)
 	b.Stop()
-	log.Println("Done.")
+	log.Infof("Done.")
 	os.Exit(0)
 }
 
@@ -82,11 +83,11 @@ func notifyShutdown(b *tb.Bot) {
 func setupSettings(settingsPath *string, destroyAfterRead *bool) {
 	var keysLocation = *settingsPath
 	if _, err := toml.DecodeFile(keysLocation, &SettingsProvider); err != nil {
-		log.Panicf("Could not read config file %s: %s", keysLocation, err)
+		log.Fatalf("Could not read config file %s: %s", keysLocation, err)
 	}
-    log.Printf("Loaded settings file %s", *settingsPath)
-    if *destroyAfterRead {
-        log.Printf("Destroying %s", *settingsPath)
-        os.Remove(*settingsPath)
-    }
+	log.Infof("Loaded settings file %s", *settingsPath)
+	if *destroyAfterRead {
+		log.Infof("Destroying %s", *settingsPath)
+		os.Remove(*settingsPath)
+	}
 }

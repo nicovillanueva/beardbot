@@ -4,9 +4,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/api/googleapi/transport"
 	vision "google.golang.org/api/vision/v1"
-	"log"
 	"net/http"
 	// youtube "google.golang.org/api/youtube/v3"
 )
@@ -34,22 +34,23 @@ func RecognizeImage(data []byte) string {
 		Requests: []*vision.AnnotateImageRequest{req},
 	}
 	client := &http.Client{
-		Transport: &transport.APIKey{Key: SettingsProvider.ApiKeys.GoogleAPI},
+		Transport: &transport.APIKey{Key: SettingsProvider.APIKeys.GoogleAPI},
 	}
 
 	svc, err := vision.New(client)
 	if err != nil {
-		log.Fatalln("Could not create vision client! %s", err)
+		log.Errorf("Could not create vision client! %s", err)
+        return "Could not contact google to do the recognizing thing :("
 	}
-	log.Printf("Calling Google Vision")
+	log.Infof("Calling Google Vision")
 	res, err := svc.Images.Annotate(batch).Do()
 	if err != nil {
 		m := "Could not recognize images!"
-		log.Printf("%s %s\n", m, err)
+		log.Errorf("%s %s\n", m, err)
 		return m
 	}
 	body, _ := json.Marshal(res.Responses[0].LabelAnnotations)
-	log.Printf("GVision says: %s", string(body))
+	log.Infof("GVision says: %s", string(body))
 
 	annotations := res.Responses[0].LabelAnnotations
 
