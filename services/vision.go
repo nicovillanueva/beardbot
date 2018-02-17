@@ -1,4 +1,4 @@
-package main
+package services
 
 import (
 	"encoding/base64"
@@ -11,14 +11,14 @@ import (
 	// youtube "google.golang.org/api/youtube/v3"
 )
 
-type VisionResult struct {
-	Descr      string
-	Mid        string
-	score      float32
-	topicality float32
-}
+// type VisionResult struct {
+// 	Descr      string
+// 	Mid        string
+// 	score      float32
+// 	topicality float32
+// }
 
-func RecognizeImage(data []byte) string {
+func RecognizeImage(ctx SettingsContext, data []byte) string {
 	enc := base64.StdEncoding.EncodeToString(data)
 	img := &vision.Image{Content: enc}
 
@@ -34,13 +34,13 @@ func RecognizeImage(data []byte) string {
 		Requests: []*vision.AnnotateImageRequest{req},
 	}
 	client := &http.Client{
-		Transport: &transport.APIKey{Key: SettingsProvider.APIKeys.GoogleAPI},
+		Transport: &transport.APIKey{Key: GetProvider(ctx).APIKeys.GoogleAPI}, // TODO: APIKEY
 	}
 
 	svc, err := vision.New(client)
 	if err != nil {
 		log.Errorf("Could not create vision client! %s", err)
-        return "Could not contact google to do the recognizing thing :("
+		return "Could not contact google to do the recognizing thing :("
 	}
 	log.Infof("Calling Google Vision")
 	res, err := svc.Images.Annotate(batch).Do()

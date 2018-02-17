@@ -1,4 +1,4 @@
-package main
+package services
 
 import (
 	"encoding/json"
@@ -21,14 +21,14 @@ var captions = []string{
 
 // GetGif receives a tag, and queries the random giphy endpoint to get a
 // gif with the given tag
-func GetGif(tag string) (*tb.Video, error) {
+func GetGif(ctx SettingsContext, tag string) (*tb.Video, error) {
 	if !initialized {
 		rand.Seed(time.Now().Unix())
 		initialized = true
 		log.Info("Initialized random seed")
 	}
 
-	ph, err := makeRequest(tag)
+	ph, err := makeRequest(ctx, tag)
 	if err != nil {
 		return nil, err
 	}
@@ -38,11 +38,11 @@ func GetGif(tag string) (*tb.Video, error) {
 	return &ph, nil
 }
 
-func makeRequest(tag string) (tb.Video, error) {
+func makeRequest(ctx SettingsContext, tag string) (tb.Video, error) {
 	// Based on https://github.com/paddycarey/gophy
 	var endpoint = "https://api.giphy.com/v1/gifs/random?"
 	qs := &url.Values{}
-	qs.Set("api_key", SettingsProvider.APIKeys.GiphyAPI)
+	qs.Set("api_key", GetProvider(ctx).APIKeys.GiphyAPI)
 	qs.Set("tag", tag)
 	endpoint += qs.Encode()
 
@@ -52,7 +52,7 @@ func makeRequest(tag string) (tb.Video, error) {
 		return tb.Video{}, err
 	}
 
-	var response GiphyResponse
+	var response giphyResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
 		log.Errorf("Error decoding Giphy response: %s", err)
 		return tb.Video{}, err
@@ -66,7 +66,7 @@ func makeRequest(tag string) (tb.Video, error) {
 	}, nil
 }
 
-type GiphyResponse struct {
+type giphyResponse struct {
 	Data struct {
 		Caption                      string `json:"caption"`
 		FixedHeightDownsampledHeight string `json:"fixed_height_downsampled_height"`

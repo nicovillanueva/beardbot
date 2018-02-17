@@ -8,10 +8,34 @@
   version = "v0.3.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/lib/pq"
+  packages = [
+    ".",
+    "oid"
+  ]
+  revision = "88edab0803230a3898347e77b474f8c1820a1f20"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/mlabouardy/dialogflow-go-client"
+  packages = [
+    ".",
+    "models"
+  ]
+  revision = "84d8aa0a65a597e3e30dddd49addf049693d8a26"
+
+[[projects]]
   name = "github.com/pkg/errors"
   packages = ["."]
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
+
+[[projects]]
+  name = "github.com/satori/go.uuid"
+  packages = ["."]
+  revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
+  version = "v1.2.0"
 
 [[projects]]
   name = "github.com/sirupsen/logrus"
@@ -74,6 +98,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "093dad222f83baa200b57935cc9a5c7a189b22d5cabeadee70d160076ce3e6ef"
+  inputs-digest = "7e0181fc4ac9d63e1e814f071523c4e338c0a4a37977c9e34e3f1bf01669f440"
   solver-name = "gps-cdcl"
   solver-version = 1

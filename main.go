@@ -1,10 +1,9 @@
 package main
 
 import (
-	"github.com/BurntSushi/toml"
+	services "github.com/nicovillanueva/beardbot/services"
 	log "github.com/sirupsen/logrus"
 	tb "gopkg.in/tucnak/telebot.v2"
-	// "log"
 	"flag"
 	"os"
 	"os/signal"
@@ -12,18 +11,7 @@ import (
 	"time"
 )
 
-type Settings struct {
-	APIKeys   KeysProvider
-	CreatorID int
-}
-
-type KeysProvider struct {
-	TelegramBot string
-	GoogleAPI   string
-	GiphyAPI    string
-}
-
-var SettingsProvider Settings
+var prov *services.Provider
 
 func main() {
 	settPtr := flag.String("settings", "./settings.toml", "Path to the TOML settings file to use")
@@ -31,11 +19,15 @@ func main() {
 	flag.Parse()
 
 	log.Infof("Starting...")
-	setupSettings(settPtr, destrPtr)
+	var ctx = services.SettingsContext{
+		ConfPath:         settPtr,
+		DestroyAfterRead: destrPtr,
+	}
+	prov = services.GetProvider(ctx)
 
 	b := assembleBot()
 
-	registerHandlers(b)
+	registerHandlers(ctx, b)
 
 	go b.Start()
 	log.Infof("Systems ready. Bot online.")
@@ -47,13 +39,13 @@ func main() {
 
 func assembleBot() *tb.Bot {
 	b, err := tb.NewBot(tb.Settings{
-		Token:  SettingsProvider.APIKeys.TelegramBot,
+		Token:  prov.APIKeys.TelegramBot,
 		Poller: &tb.LongPoller{Timeout: 10 * time.Second},
 	})
 	if err != nil {
 		log.Panicln(err)
 	}
-	log.Infof("Bot created: %s.", SettingsProvider.APIKeys.TelegramBot)
+	log.Infof("Bot created: %s", prov.APIKeys.TelegramBot)
 	return b
 }
 
@@ -69,25 +61,13 @@ func prepareShutdown(b *tb.Bot) {
 }
 
 func notifyStartup(b *tb.Bot) {
-	if SettingsProvider.CreatorID != 0 {
-		b.Send(&tb.User{ID: SettingsProvider.CreatorID}, "Bot online")
+	if prov.CreatorID != 0 {
+		b.Send(&tb.User{ID: prov.CreatorID}, "[status] Bot online")
 	}
 }
 
 func notifyShutdown(b *tb.Bot) {
-	if SettingsProvider.CreatorID != 0 {
-		b.Send(&tb.User{ID: SettingsProvider.CreatorID}, "Bot offline")
-	}
-}
-
-func setupSettings(settingsPath *string, destroyAfterRead *bool) {
-	var keysLocation = *settingsPath
-	if _, err := toml.DecodeFile(keysLocation, &SettingsProvider); err != nil {
-		log.Fatalf("Could not read config file %s: %s", keysLocation, err)
-	}
-	log.Infof("Loaded settings file %s", *settingsPath)
-	if *destroyAfterRead {
-		log.Infof("Destroying %s", *settingsPath)
-		os.Remove(*settingsPath)
+	if prov.CreatorID != 0 {
+		b.Send(&tb.User{ID: prov.CreatorID}, "[status] Bot offline")
 	}
 }

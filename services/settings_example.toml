@@ -1,0 +1,9 @@
+CreatorID = 0
+
+[URIs]
+Mongo = "localhost:27017"
+
+[ApiKeys]
+TelegramBot = "0"
+GoogleAPI = "1"
+GiphyAPI = "2"
